@@ -17,7 +17,10 @@ static float point_segment_distance(const Vec3f &x0, const Vec3f &x1, const Vec3
 }
 
 // find distance x0 is from triangle x1-x2-x3
-static float point_triangle_distance(const Vec3f &x0, const Vec3f &x1, const Vec3f &x2, const Vec3f &x3)
+float point_triangle_distance(
+    const Vec3f &x0,
+    const Vec3f &x1, const Vec3f &x2, const Vec3f &x3,
+    float * baryCentricCoordinates)
 {
    // first find barycentric coordinates of closest point on infinite plane
    Vec3f x13(x1-x3), x23(x2-x3), x03(x0-x3);
@@ -28,6 +31,11 @@ static float point_triangle_distance(const Vec3f &x0, const Vec3f &x1, const Vec
    float w23=invdet*(m23*a-d*b);
    float w31=invdet*(m13*b-d*a);
    float w12=1-w23-w31;
+   if(baryCentricCoordinates!=0){
+     baryCentricCoordinates[0] = w23;
+     baryCentricCoordinates[1] = w31;
+     baryCentricCoordinates[2] = w12;
+   }
    if(w23>=0 && w31>=0 && w12>=0){ // if we're inside the triangle
       return dist(x0, w23*x1+w31*x2+w12*x3); 
    }else{ // we have to clamp to one of the edges
@@ -115,7 +123,7 @@ static bool point_in_triangle_2d(double x0, double y0,
    return true;
 }
 
-void make_level_set3(const std::vector<Vec3ui> &tri, const std::vector<Vec3f> &x,
+Array3i make_level_set3(const std::vector<Vec3ui> &tri, const std::vector<Vec3f> &x,
                      const Vec3f &origin, float dx, int ni, int nj, int nk,
                      Array3f &phi, const int exact_band)
 {
@@ -180,5 +188,6 @@ void make_level_set3(const std::vector<Vec3ui> &tri, const std::vector<Vec3f> &x
          }
       }
    }
+   return closest_tri;
 }
 
